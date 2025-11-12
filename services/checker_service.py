@@ -1,6 +1,6 @@
 # services/checker_service.py
 from core.spell_engine import SpellEngine
-from core.grammar_engine import GrammarEngine
+from core.grammer_engine import GrammarEngine
 
 class CheckerService:
     def __init__(self):
