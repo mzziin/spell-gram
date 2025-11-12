@@ -3,6 +3,7 @@ from textblob import TextBlob
 
 class SpellEngine:
     def correct(self, text: str):
+        """Correct spelling errors using TextBlob."""
         blob = TextBlob(text)
         corrected_text = str(blob.correct())
 

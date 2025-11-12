@@ -8,7 +8,7 @@ class CheckerService:
         self.grammar_engine = GrammarEngine()
 
     def check_text(self, text: str):
-        """Runs spell + grammar checks"""
+        """Runs spell + grammar checks (both offline)."""
         spell_checked_text, spell_issues = self.spell_engine.correct(text)
         grammar_checked_text, grammar_issues = self.grammar_engine.correct(spell_checked_text)
 
