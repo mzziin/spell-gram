@@ -10,7 +10,7 @@ class MainWindow:
     def __init__(self):
         # Create themed window with dark theme
         self.root = tb.Window(themename="darkly")
-        self.root.title("Spell Checker")
+        self.root.title("SpellGram")
         self.root.geometry("1200x800")
 
         # Make the window responsive
@@ -37,7 +37,7 @@ class MainWindow:
 
         # --- Header Section ---
         header_frame = tb.Frame(main_frame)
-        header_frame.grid(row=0, column=0, sticky="ew", pady=(60, 10))
+        header_frame.grid(row=0, column=0, sticky="ew", pady=(80, 0))
         header_frame.columnconfigure(0, weight=1)
 
         # Icon + Title
@@ -46,15 +46,15 @@ class MainWindow:
     
         title_label = tb.Label(
             title_container,
-            text="Spell Checker",
-            font=("Segoe UI", 52, "bold"),
+            text="SpellGram",
+            font=("Segoe UI", 46, "bold"),
         )
         title_label.pack(side="left")
 
     
         # --- Text Area Container with modern styling ---
         text_container = tb.Frame(main_frame, bootstyle="dark")
-        text_container.grid(row=2, column=0, sticky="nsew", padx=120, pady=(0, 40))
+        text_container.grid(row=2, column=0, sticky="nsew", padx=120, pady=(70, 70))
         text_container.columnconfigure(0, weight=1)
         text_container.rowconfigure(0, weight=1)
 
@@ -104,7 +104,7 @@ class MainWindow:
 
         # --- Modern Button Panel ---
         button_container = tb.Frame(main_frame)
-        button_container.grid(row=3, column=0, pady=(0, 40))
+        button_container.grid(row=3, column=0, pady=(0, 80))
 
         # Custom styled buttons with hover effect
         check_btn = tb.Button(
