@@ -144,6 +144,15 @@ class MainWindow:
         status_container.grid(row=4, column=0, sticky="ew", pady=(0, 30))
         status_container.columnconfigure(0, weight=1)
 
+        self.status_label = tb.Label(
+        status_container,
+        text="Ready to check your text",
+        font=("Segoe UI", 12),
+        bootstyle="secondary"
+        )
+        self.status_label.grid(row=0, column=0, pady=5)
+
+
     # ---------------- Logic ----------------
     def check_text(self):
         text = self.text_area.get("1.0", "end").strip()
@@ -173,21 +182,25 @@ class MainWindow:
             messagebox.showinfo("Info", "No issues to fix.")
             return
 
-        text = self.text_area.get("1.0", "end")
-        for issue in reversed(self.issues):
-            if issue.suggestion:
-                text = text[:issue.start] + issue.suggestion + text[issue.end:]
-            elif issue.suggestions:
-                text = text[:issue.start] + issue.suggestions[0] + text[issue.end:]
+        text = self.text_area.get("1.0", "end").strip()
 
+        # Ask backend to reprocess (ensures indexes match)
+        corrected_text, _ = self.service.check_text(text)
+
+        # Replace text with fully corrected version
         self.text_area.delete("1.0", "end")
-        self.text_area.insert("end", text)
+        self.text_area.insert("1.0", corrected_text)
+
+        # Remove highlighting
         self.text_area.tag_remove("error", "1.0", "end")
+
+        # Clear list
+        self.issues.clear()
+
         self.status_label.config(
             text="✓ All issues fixed successfully",
             foreground="#10B981"
         )
-        self.issues.clear()
 
     def clear_text(self):
         self.text_area.delete("1.0", "end")
