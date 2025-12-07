@@ -4,18 +4,35 @@ from core.grammer_engine import GrammarEngine
 from core.models import Issue
 
 class CheckerService:
-    """Handles orchestration between spell and grammar checks."""
 
     def __init__(self):
         self.spell_engine = SpellEngine()
         self.grammar_engine = GrammarEngine()
 
-    def check_text(self, text: str):
-        """Runs both checks and returns final text + all issues."""
-        spell_checked_text, spell_issues = self.spell_engine.correct(text)
-        grammar_checked_text, grammar_issues = self.grammar_engine.correct(spell_checked_text)
-
-        all_issues = spell_issues + grammar_issues
-        all_issues.sort(key=lambda i: i.start)  # sort by text order
-
-        return grammar_checked_text, all_issues
+    def check_spelling(self, text: str):
+        """
+        Check text for spelling errors only.
+        Returns list of spelling issues.
+        """
+        return self.spell_engine.check(text)
+    
+    def apply_spell_correction(self, text: str, issue: Issue, chosen_word: str):
+        """
+        Apply a single spelling correction.
+        Returns corrected text.
+        """
+        return self.spell_engine.apply_correction(text, issue, chosen_word)
+    
+    def check_grammar(self, text: str):
+        """
+        Check text for grammar errors only.
+        Returns list of grammar issues.
+        """
+        return self.grammar_engine.check(text)
+    
+    def fix_grammar(self, text: str, issues: list[Issue]):
+        """
+        Apply all grammar corrections at once.
+        Returns corrected text.
+        """
+        return self.grammar_engine.correct(text, issues)

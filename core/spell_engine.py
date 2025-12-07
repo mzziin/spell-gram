@@ -7,54 +7,30 @@ from core.models import Issue
 # Regex to extract words and punctuation
 WORD_TOKEN_RE = re.compile(r"\b[\w']+\b|[^\w\s]", re.UNICODE)
 
-# Full list of protected English words (case-insensitive)
+# Protected English words (case-insensitive)
 PROTECTED_WORDS = {
-    # Pronouns
     "I", "i", "me", "you", "he", "she", "it", "we", "they",
-    "him", "her", "them",
-
-    # Possessive pronouns
-    "my", "your", "his", "her", "its", "our", "their",
-    "mine", "yours", "hers", "ours", "theirs",
-
-    # Auxiliary verbs
+    "him", "her", "them", "my", "your", "his", "her", "its", 
+    "our", "their", "mine", "yours", "hers", "ours", "theirs",
     "am", "is", "are", "was", "were", "be", "been", "being",
-    "do", "does", "did", "done",
-
-    # Articles & determiners
-    "a", "an", "the", "this", "that", "these", "those",
-
-    # Prepositions
-    "in", "on", "at", "by", "to", "of", "for", "with",
-    "from", "after", "before", "over", "under", "between",
-    "into", "during", "through", "without", "within",
-
-    # Conjunctions
-    "and", "or", "but", "so", "nor", "yet",
-
-    # Modal verbs
-    "can", "could", "will", "would", "shall", "should",
-    "may", "might", "must",
-
-    # Common adverbs
-    "very", "really", "just", "only", "still", "even",
-    "ever", "never",
-
-    # Common words
-    "yes", "no", "not", "as", "up", "down", "out",
-    "then", "than", "when", "while", "where", "what",
+    "do", "does", "did", "done", "a", "an", "the", "this", 
+    "that", "these", "those", "in", "on", "at", "by", "to", 
+    "of", "for", "with", "from", "after", "before", "over", 
+    "under", "between", "into", "during", "through", "without",
+    "within", "and", "or", "but", "so", "nor", "yet", "can",
+    "could", "will", "would", "shall", "should", "may", "might",
+    "must", "very", "really", "just", "only", "still", "even",
+    "ever", "never", "yes", "no", "not", "as", "up", "down",
+    "out", "then", "than", "when", "while", "where", "what",
     "which", "who", "how", "why"
 }
 
 
 class SpellEngine:
-    """SymSpell-based spell correction engine with smart-protection logic."""
 
     def __init__(self):
-        # Initialize SymSpell
         self.symspell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
-
-        # Path to SymSpell dictionary
+        
         base_path = os.path.dirname(os.path.abspath(__file__))
         dict_path = os.path.join(base_path, "..", "dictionaries", "symspell_frequency.txt")
         dict_path = os.path.normpath(dict_path)
@@ -62,24 +38,21 @@ class SpellEngine:
         if not os.path.exists(dict_path):
             raise FileNotFoundError(
                 f"SymSpell dictionary not found:\n{dict_path}\n"
-                "Download frequency_dictionary_en_82_765.txt and rename it to symspell_frequency.txt"
             )
 
         if not self.symspell.load_dictionary(dict_path, term_index=0, count_index=1):
             raise RuntimeError("Failed to load SymSpell dictionary")
 
-    # ------------------------------------------------------------------
     def is_correct_word(self, word: str) -> bool:
-        """Check if a word is spelled correctly (exact match only)."""
         results = self.symspell.lookup(word, Verbosity.TOP, max_edit_distance=0)
         return bool(results and results[0].term.lower() == word.lower())
 
-    # ------------------------------------------------------------------
-    def correct(self, text: str):
-        """Return corrected text + list of spelling issues."""
+    def check(self, text: str):
+        """
+        Check text for spelling errors.
+        Returns list of spelling issues with up to 3 suggestions each.
+        """
         issues = []
-        corrected_tokens = []
-
         tokens = list(WORD_TOKEN_RE.finditer(text))
 
         for tok in tokens:
@@ -87,62 +60,68 @@ class SpellEngine:
 
             # Skip punctuation/symbols
             if not re.match(r"^[\w']+$", word):
-                corrected_tokens.append(word)
                 continue
 
             # Skip numbers
             if any(ch.isdigit() for ch in word):
-                corrected_tokens.append(word)
                 continue
 
-            # Protected Words (case-insensitive)
+            # Check protected words
             if word.lower() in PROTECTED_WORDS:
-                # If spelled correctly → keep it unchanged
                 if self.is_correct_word(word) or self.is_correct_word(word.lower()):
-                    corrected_tokens.append(word)
                     continue
-                # If misspelled → allow SymSpell to fix it normally
 
-            # SymSpell correction
+            # Check if word is correct
+            if self.is_correct_word(word):
+                continue
+
+            # Get suggestions for misspelled word
             suggestions = self.symspell.lookup(
                 word,
-                Verbosity.TOP,
-                max_edit_distance=2
+                Verbosity.ALL,
+                max_edit_distance=2,
+                include_unknown=False
             )
 
             if suggestions:
-                best = suggestions[0].term
-
-                # Register issue if changed
-                if best.lower() != word.lower():
+                # Get top suggestions, prioritizing those with edit distance <= 2
+                top_suggestions = []
+                
+                for s in suggestions:
+                    if len(top_suggestions) >= 5:
+                        break
+                    top_suggestions.append(s.term)
+                
+                # Remove duplicates while preserving order
+                seen = set()
+                unique_suggestions = []
+                for s in top_suggestions:
+                    s_lower = s.lower()
+                    if s_lower not in seen and s_lower != word.lower():
+                        seen.add(s_lower)
+                        unique_suggestions.append(s)
+                
+                # Limit to top 3
+                final_suggestions = unique_suggestions[:3]
+                
+                # Only create issue if we have valid suggestions
+                if final_suggestions:
                     issues.append(
                         Issue(
                             type="spelling",
                             start=tok.start(),
                             end=tok.end(),
                             original=word,
-                            suggestion=best,
-                            suggestions=[s.term for s in suggestions]
+                            suggestion=final_suggestions[0],
+                            suggestions=final_suggestions
                         )
                     )
 
-                corrected_tokens.append(best)
-            else:
-                corrected_tokens.append(word)
-
-        corrected_text = self._rebuild_text(text, tokens, corrected_tokens)
-        return corrected_text, issues
-
-    # ------------------------------------------------------------------
-    def _rebuild_text(self, original_text, tokens, corrected_tokens):
-        """Rebuild the final corrected text while preserving original spacing."""
-        result = []
-        last = 0
-
-        for tok, new in zip(tokens, corrected_tokens):
-            result.append(original_text[last:tok.start()])
-            result.append(new)
-            last = tok.end()
-
-        result.append(original_text[last:])
-        return "".join(result)
+        return issues
+    
+    def apply_correction(self, text: str, issue: Issue, chosen_word: str):
+        """
+        Apply a single correction to text.
+        Returns the corrected text.
+        """
+        return text[:issue.start] + chosen_word + text[issue.end:]
