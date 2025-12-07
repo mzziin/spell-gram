@@ -142,6 +142,14 @@ class MainWindow:
         status_container.grid(row=3, column=0, sticky="ew", pady=(0, 30))
         status_container.columnconfigure(0, weight=1)
 
+        self.status_label = tb.Label(
+            status_container,
+            text="Ready to check spelling",
+            font=("Segoe UI", 12),
+            bootstyle="primary"
+        )
+        self.status_label.grid(row=0, column=0, pady=5)
+
 
     # ---------------- Core Logic ----------------
     
@@ -269,7 +277,7 @@ class MainWindow:
         popup.wm_attributes("-topmost", True)
         
         # Popup frame with shadow effect
-        frame = tb.Frame(popup, bootstyle="dark", relief="solid", borderwidth=2)
+        frame = tb.Frame(popup, relief="solid", borderwidth=2)
         frame.pack(fill="both", expand=True, padx=3, pady=3)
         
         # Title
@@ -412,7 +420,6 @@ class MainWindow:
             )
 
     def fix_grammar(self):
-        """Fix all grammar errors at once."""
         if not self.grammar_issues:
             messagebox.showinfo("Info", "No grammar errors to fix.")
             return
@@ -441,7 +448,6 @@ class MainWindow:
         )
 
     def clear_text(self):
-        """Clear everything and reset to initial state."""
         self.text_area.delete("1.0", "end")
         placeholder = "Type or paste your text here..."
         self.text_area.insert("1.0", placeholder)

@@ -4,7 +4,6 @@ from typing import List
 
 @dataclass
 class Issue:
-    """Represents a spelling or grammar issue."""
     type: str                # "spelling" or "grammar"
     start: int               # character start index
     end: int                 # character end index

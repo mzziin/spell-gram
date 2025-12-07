@@ -4,7 +4,6 @@ from core.grammer_engine import GrammarEngine
 from core.models import Issue
 
 class CheckerService:
-    """Handles orchestration between spell and grammar checks."""
 
     def __init__(self):
         self.spell_engine = SpellEngine()

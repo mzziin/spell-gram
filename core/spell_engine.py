@@ -27,7 +27,6 @@ PROTECTED_WORDS = {
 
 
 class SpellEngine:
-    """SymSpell-based spell checker that returns suggestions."""
 
     def __init__(self):
         self.symspell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
@@ -39,14 +38,12 @@ class SpellEngine:
         if not os.path.exists(dict_path):
             raise FileNotFoundError(
                 f"SymSpell dictionary not found:\n{dict_path}\n"
-                "Download frequency_dictionary_en_82_765.txt and rename it to symspell_frequency.txt"
             )
 
         if not self.symspell.load_dictionary(dict_path, term_index=0, count_index=1):
             raise RuntimeError("Failed to load SymSpell dictionary")
 
     def is_correct_word(self, word: str) -> bool:
-        """Check if a word is spelled correctly."""
         results = self.symspell.lookup(word, Verbosity.TOP, max_edit_distance=0)
         return bool(results and results[0].term.lower() == word.lower())
 
@@ -79,7 +76,6 @@ class SpellEngine:
                 continue
 
             # Get suggestions for misspelled word
-            # Use higher max_edit_distance and get more results to find better suggestions
             suggestions = self.symspell.lookup(
                 word,
                 Verbosity.ALL,
@@ -91,9 +87,8 @@ class SpellEngine:
                 # Get top suggestions, prioritizing those with edit distance <= 2
                 top_suggestions = []
                 
-                # First, add suggestions with lower edit distances
                 for s in suggestions:
-                    if len(top_suggestions) >= 5:  # Get more to filter better
+                    if len(top_suggestions) >= 5:
                         break
                     top_suggestions.append(s.term)
                 
