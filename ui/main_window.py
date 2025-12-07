@@ -21,12 +21,12 @@ class MainWindow:
         self.spelling_issues: list[Issue] = []
         self.grammar_issues: list[Issue] = []
         self.current_hover_window = None
-        self._hide_job = None  # Track scheduled popup hide jobs
+        self._hide_job = None 
 
         self.create_widgets()
 
     def create_widgets(self):
-        main_frame = tb.Frame(self.root, bootstyle="dark")
+        main_frame = tb.Frame(self.root)
         main_frame.grid(row=0, column=0, sticky="nsew")
 
         main_frame.columnconfigure(0, weight=1)
@@ -142,13 +142,6 @@ class MainWindow:
         status_container.grid(row=3, column=0, sticky="ew", pady=(0, 30))
         status_container.columnconfigure(0, weight=1)
 
-        self.status_label = tb.Label(
-            status_container,
-            text="Ready to check spelling",
-            font=("Segoe UI", 12),
-            bootstyle="secondary"
-        )
-        self.status_label.grid(row=0, column=0, pady=5)
 
     # ---------------- Core Logic ----------------
     
