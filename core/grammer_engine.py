@@ -3,7 +3,6 @@ import language_tool_python
 from core.models import Issue
 
 class GrammarEngine:
-    """Grammar checking engine using LanguageTool."""
     
     def __init__(self):
         # Initialize LanguageTool for English
@@ -79,10 +78,6 @@ class GrammarEngine:
         return False
     
     def correct(self, text: str, issues: list[Issue]):
-        """
-        Apply corrections to text based on issues.
-        Processes from end to start to maintain correct positions.
-        """
         # Sort issues by position (reverse order)
         sorted_issues = sorted(issues, key=lambda x: x.start, reverse=True)
         
